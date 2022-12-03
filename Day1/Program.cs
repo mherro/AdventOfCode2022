@@ -1,8 +1,6 @@
-﻿// See https://aka.ms/new-console-template for more information
+﻿Console.WriteLine("Calculating calories...");
 
-Console.WriteLine("Hello, World!");
-
-var inputLines = File.ReadLines(Path.Combine("input", "problem1.txt"));
+var inputLines = File.ReadLines(Path.Combine("input", "calorie_inventory.txt"));
 
 var elves = new List<int>();
 var currentCalorieCount = 0;
