@@ -1,4 +1,8 @@
-﻿Console.WriteLine("Calculating scores...");
+﻿Console.WriteLine();
+Console.WriteLine("<< START >>");
+Console.WriteLine();
+Console.WriteLine("Calculating scores...");
+Console.WriteLine();
 
 var inputLines = File.ReadLines(Path.Combine("input", "strategy_guide.txt"));
 
@@ -19,6 +23,14 @@ var beats = new Dictionary<Choice, Choice>()
     {Choice.Paper, Choice.Rock}
 };
 
+var loses = new Dictionary<Choice, Choice>()
+{
+    {Choice.Scissors, Choice.Rock},
+    {Choice.Paper, Choice.Scissors},
+    {Choice.Rock, Choice.Paper}
+};
+
+// Read input
 var choices = inputLines.Select(line =>
 {
     var tokens = line.Split(" ");
@@ -28,20 +40,53 @@ var choices = inputLines.Select(line =>
     return (theirs, mine);
 });
 
+var outcomeMapping = new Dictionary<string, Outcome>()
+{
+    {"X", Outcome.Lose},
+    {"Y", Outcome.Draw},
+    {"Z", Outcome.Win}
+};
+
+
+// Calculate Part 1
 var scores = choices
     .Select((choice) => Score(choice.theirs, choice.mine))
     .Aggregate((sum, choice) => (sum.Item1 += choice.Item1, sum.Item2 += choice.Item2));
 
+Console.WriteLine("Part 1");
 Console.WriteLine($"Their score: {scores.Item1}");
 Console.WriteLine($"My score: {scores.Item2}");
+Console.WriteLine();
 
-Console.WriteLine("");
+// Calculate Part 2
+
+var strategies = inputLines.Select(line =>
+{
+    var tokens = line.Split(" ");
+    var theirs = mapping[tokens[0]];
+    var outcome = tokens[1];
+
+    return (theirs, outcome);
+});
+
+
+var scoresPart2 = strategies
+    .Select((strategy) => {
+        var outcome = outcomeMapping[strategy.outcome];
+        var mine = MakeChoice(strategy.theirs, outcome);
+
+        var scores = Score(strategy.theirs, mine);
+        return scores;
+    })
+    .Aggregate((sum, choice) => (sum.Item1 += choice.Item1, sum.Item2 += choice.Item2));
+
+Console.WriteLine("Part 2");
+Console.WriteLine($"Their score: {scoresPart2.Item1}");
+Console.WriteLine($"My score: {scoresPart2.Item2}");
+
+Console.WriteLine();
 Console.WriteLine("<< END >>");
-Console.WriteLine("");
-
-const int loseScore = 0;
-const int drawScore = 3;
-const int winScore = 6;
+Console.WriteLine();
 
 (int, int) Score(Choice theirs, Choice mine)
 {
@@ -50,17 +95,17 @@ const int winScore = 6;
     
     if (theirs == mine)
     {
-        theirScore = myScore = drawScore;
+        theirScore = myScore = (int) Outcome.Draw;
     }
     else if (beats[theirs] == mine)
     {
-        theirScore = winScore;
-        myScore = loseScore;
+        theirScore = (int) Outcome.Win;
+        myScore = (int) Outcome.Lose;
     }
     else if (beats[mine] == theirs)
     {
-        theirScore = loseScore;
-        myScore = winScore;
+        theirScore = (int) Outcome.Lose;
+        myScore = (int) Outcome.Win;
     }
     else
     {
@@ -78,9 +123,28 @@ int WeighScore(Choice choice, int score)
     return ((int) choice) + score;
 }
 
+Choice MakeChoice(Choice theirChoice, Outcome outcome) {
+
+    var myChoice = outcome switch
+    {
+        Outcome.Win => loses[theirChoice],
+        Outcome.Lose => beats[theirChoice],
+        _ => theirChoice // Draw
+    };
+
+    return myChoice;
+}
+
 enum Choice
 {
     Rock = 1,
     Paper = 2,
     Scissors = 3
+};
+
+enum Outcome
+{
+    Win = 6,
+    Lose = 0,
+    Draw = 3
 };
